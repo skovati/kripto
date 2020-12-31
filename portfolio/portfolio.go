@@ -9,9 +9,6 @@ import (
     "github.com/skovati/kripto/coin"
 )
 
-// standard location for user data in Linux
-const LINUX_PREFIX = "/.local/share/kripto"
-
 // location of portfolio
 var PortfolioDir string = FindPortfolioPath()
 var PortfolioPath string = PortfolioDir + "/portfolio.json"
@@ -21,14 +18,13 @@ func FindPortfolioPath() string {
     if err != nil {
         fmt.Println(err)
     }
-    return homeDir + LINUX_PREFIX
+    return homeDir + "/.local/share/kripto"
 }
 
 func OpenPortfolio() *[]coin.Coin {
     // portfolio is a slice of Coins
     portfolio := []coin.Coin{}
     // check if portfolio exists
-    fmt.Println(file.Exists(PortfolioPath))
     if !file.Exists(PortfolioPath) {
         CreatePortfolio()
     }
@@ -39,7 +35,6 @@ func OpenPortfolio() *[]coin.Coin {
 		fmt.Println("File could not be read, try 'kripto init'")
 		return nil
 	}
-    fmt.Println(portfolioJson)
     // unmarshal into portfolio var
 	json.Unmarshal(portfolioJson, &portfolio)
     // return address of portfolio array
@@ -49,7 +44,7 @@ func OpenPortfolio() *[]coin.Coin {
 func CreatePortfolio() {
     // make directory
     os.MkdirAll(PortfolioDir, os.ModePerm)
-    // create portfolio at PortfolioDir
+    // create portfolio at PortfolioPath
     _, err := os.Create(PortfolioPath)
     if err != nil {
         fmt.Println("Cannot create new portfolio.")
