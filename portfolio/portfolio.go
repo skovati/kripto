@@ -75,7 +75,7 @@ func AddCoin(portfolio *[]coin.Coin, currency string, amount float64) bool {
 
     // create coin struct to add based on supported info
     toAdd := coin.Coin{
-        ID: info[0],
+        Id: info[0],
         Symbol: info[1],
         Name: info[2],
         Amount: amount}
@@ -87,7 +87,7 @@ func AddCoin(portfolio *[]coin.Coin, currency string, amount float64) bool {
 func RemoveCoin(portfolio *[]coin.Coin, idToRemove string) bool {
     index := -1
     for i, c := range *portfolio {
-        if c.ID == idToRemove {
+        if c.Id == idToRemove {
             index = i
             break
         }
@@ -96,6 +96,16 @@ func RemoveCoin(portfolio *[]coin.Coin, idToRemove string) bool {
         // set portfolio equal to 
         *portfolio = append((*portfolio)[:index], (*portfolio)[index+1:]...)
         return true
+    }
+    return false
+}
+
+func EditCoin(portfolio *[]coin.Coin, idToEdit string, amount float64) bool {
+    for _, c := range *portfolio {
+        if c.Id == idToEdit {
+            c.Amount = amount
+            return true
+        }
     }
     return false
 }

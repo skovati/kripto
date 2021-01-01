@@ -1,7 +1,7 @@
 package coin
 
 type Coin struct {
-	ID     string
+	Id     string
 	Symbol string
 	Name   string
     Amount float64

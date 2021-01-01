@@ -2,29 +2,20 @@ package main
 
 import (
     "fmt"
-    "github.com/skovati/kripto/portfolio"
+    // "github.com/skovati/kripto/portfolio"
     "github.com/skovati/kripto/api"
 )
 
 func main() {
-    folio := *portfolio.OpenPortfolio()
+    // folio := *portfolio.OpenPortfolio()
 
-    for _, c := range(folio) {
-        fmt.Println(c.Name + ":")
-        fmt.Println(api.GetPrice(c.ID))
-    }
+    topCoins := api.GetTopCoins(50)
 
-    portfolio.AddCoin(&folio, "cardano", 275.0)
-
-    for _, c := range(folio) {
-        fmt.Println(c.Name + ":")
-        fmt.Println(api.GetPrice(c.ID))
-    }
-
-    portfolio.RemoveCoin(&folio, "cardano")
-
-    for _, c := range(folio) {
-        fmt.Println(c.Name + ":")
-        fmt.Println(api.GetPrice(c.ID))
+    for i, tc := range topCoins {
+        fmt.Printf("---------------\n")
+        fmt.Printf("%d. " + tc.Name + ":\n", i+1)
+        fmt.Printf("Price: $%.2f\n", tc.Price)
+        fmt.Printf("Percent Change 1 Hour: %.2f%%\n", tc.Percent1H)
+        fmt.Printf("Market Cap: $%d\n", tc.MarketCap)
     }
 }
