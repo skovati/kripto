@@ -9,7 +9,6 @@ import (
     "github.com/skovati/kripto/file"
 )
 
-
 var CacheDir string = getCacheDir() + "/kripto"
 var CachePath string = CacheDir + "/cached_coins.json"
 
@@ -27,9 +26,9 @@ func getCacheDir() string {
     return ret
 }
 
-func GetPrice(currency string) (usdPrice, percentChange1H, percentChange24H, percentChange7D float64) {
+func GetPrice(currency string) [4]float64 {
     // convert currency to id
-    id := GetID(currency)
+    id := GetCoinInfo(currency)[0]
 
     // construct url with id
 	url := "https://api.coingecko.com/api/v3/coins/" + id + "?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false"
@@ -56,16 +55,30 @@ func GetPrice(currency string) (usdPrice, percentChange1H, percentChange24H, per
 	json.Unmarshal([]byte(body), &result)
 
     // grab important info from json
-	usdPrice = result["market_data"]["current_price"]["usd"]
-	percentChange1H = result["market_data"]["price_change_percentage_1h_in_currency"]["usd"]
-	percentChange24H = result["market_data"]["price_change_percentage_24h_in_currency"]["usd"]
-	percentChange7D = result["market_data"]["price_change_percentage_7d_in_currency"]["usd"]
-
-    // return all values defined in func sig
-	return
+    return [4]float64{
+	    result["market_data"]["current_price"]["usd"],
+	    result["market_data"]["price_change_percentage_1h_in_currency"]["usd"],
+	    result["market_data"]["price_change_percentage_24h_in_currency"]["usd"],
+	    result["market_data"]["price_change_percentage_7d_in_currency"]["usd"]}
 }
 
-func GetID(currency string) string {
+func GetCoinInfo(currency string) [3]string {
+    // get slice of supported coins
+    supportedCoins := OpenCache()
+
+    // loop through and check if user inputed string is supported
+    for _, coin := range supportedCoins {
+      if coin.Symbol == currency || coin.Name == currency || coin.ID == currency {
+        return [3]string{coin.ID, coin.Symbol, coin.Name}
+      }
+    }
+
+    // else, the currency is not supported
+    // I need to do something important here
+    return [3]string{"", "", ""}
+}
+
+func OpenCache() []CacheCoin {
     // if coin cache doesn't exist, run api cache function
     if !file.Exists(CachePath) {
         if !GetSupportedCoins() {
@@ -83,16 +96,8 @@ func GetID(currency string) string {
     supportedCoins := []CacheCoin{}
     json.Unmarshal(portfolioJson, &supportedCoins)
 
-    // loop through and check if user inputed string is supported
-    for _, coin := range supportedCoins {
-      if coin.Symbol == currency || coin.Name == currency || coin.ID == currency {
-        return coin.ID
-      }
-    }
-
-    // else, the currency is not supported
-    // I need to do something important here
-    return ""
+    // return slice
+    return supportedCoins
 }
 
 func GetSupportedCoins() bool {

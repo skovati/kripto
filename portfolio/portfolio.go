@@ -7,6 +7,7 @@ import (
 	"os"
     "github.com/skovati/kripto/file"
     "github.com/skovati/kripto/coin"
+    "github.com/skovati/kripto/api"
 )
 
 // location of portfolio
@@ -54,7 +55,7 @@ func CreatePortfolio() {
 }
 
 func SavePortfolio(portfolio *[]coin.Coin) {
-	portfolioJson, err := json.MarshalIndent(*portfolio, "", "   ")
+	portfolioJson, err := json.MarshalIndent(*portfolio, "", "  ")
 	if err != nil {
 		fmt.Println("Error encoding as json.")
 	}
@@ -63,4 +64,38 @@ func SavePortfolio(portfolio *[]coin.Coin) {
 		fmt.Println("Error writing to file.")
 	}
 	return
+}
+
+func AddCoin(portfolio *[]coin.Coin, currency string, amount float64) bool {
+    // check to make sure coin is supported
+    info := api.GetCoinInfo(currency)
+    if info[0] == "" || info[1] == "" || info[2] == "" {
+        return false
+    }
+
+    // create coin struct to add based on supported info
+    toAdd := coin.Coin{
+        ID: info[0],
+        Symbol: info[1],
+        Name: info[2],
+        Amount: amount}
+
+    *portfolio = append(*portfolio, toAdd)
+    return true
+}
+
+func RemoveCoin(portfolio *[]coin.Coin, idToRemove string) bool {
+    index := -1
+    for i, c := range *portfolio {
+        if c.ID == idToRemove {
+            index = i
+            break
+        }
+    }
+    if index > -1 && index < len(*portfolio) {
+        // set portfolio equal to 
+        *portfolio = append((*portfolio)[:index], (*portfolio)[index+1:]...)
+        return true
+    }
+    return false
 }
