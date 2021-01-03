@@ -6,9 +6,10 @@ import (
     "fmt"
     "encoding/json"
 	"io/ioutil"
-    "github.com/skovati/kripto/file"
     "strings"
     "strconv"
+
+    "github.com/skovati/kripto/file"
 )
 
 var CacheDir string = getCacheDir() + "/kripto"
@@ -41,7 +42,11 @@ func getCacheDir() string {
 
 func GetPrice(currency string) [4]float64 {
     // convert currency to id
-    id := GetCoinInfo(currency)[0]
+    supported, data := GetCoinInfo(currency)
+    if !supported {
+        fmt.Println("Coin not supported")
+    }
+    id := data[0]
 
     // construct url with id
 	url := "https://api.coingecko.com/api/v3/coins/" + id + "?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false"
@@ -75,7 +80,7 @@ func GetPrice(currency string) [4]float64 {
 	    result["market_data"]["price_change_percentage_7d_in_currency"]["usd"]}
 }
 
-func GetCoinInfo(currency string) [3]string {
+func GetCoinInfo(currency string) (bool, [3]string) {
     lowerCurrency := strings.ToLower(currency)
     // get slice of supported coins
     supportedCoins := OpenCache()
@@ -83,13 +88,12 @@ func GetCoinInfo(currency string) [3]string {
     // loop through and check if user inputed string is supported
     for _, cacheCoin := range supportedCoins {
       if cacheCoin.Symbol == lowerCurrency || cacheCoin.Name == currency || cacheCoin.Id == lowerCurrency {
-        return [3]string{cacheCoin.Id, cacheCoin.Symbol, cacheCoin.Name}
+        return true, [3]string{cacheCoin.Id, cacheCoin.Symbol, cacheCoin.Name}
       }
     }
 
     // else, the currency is not supported
-    // I need to do something important here
-    return [3]string{"", "", ""}
+    return false, [3]string{"", "", ""}
 }
 
 func OpenCache() []CacheCoin {

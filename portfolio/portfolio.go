@@ -3,11 +3,12 @@ package portfolio
 import (
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
+	"os"
+
 	"github.com/skovati/kripto/api"
 	"github.com/skovati/kripto/coin"
 	"github.com/skovati/kripto/file"
-	"io/ioutil"
-	"os"
 )
 
 // location of portfolio
@@ -68,8 +69,8 @@ func SavePortfolio(portfolio *[]coin.Coin) {
 
 func AddCoin(portfolio *[]coin.Coin, currency string, amount float64) bool {
 	// check to make sure coin is supported
-	info := api.GetCoinInfo(currency)
-	if info[0] == "" || info[1] == "" || info[2] == "" {
+	supported, info := api.GetCoinInfo(currency)
+	if !supported {
 		return false
 	}
 

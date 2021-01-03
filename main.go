@@ -7,6 +7,7 @@ import (
     "github.com/gdamore/tcell/v2"
 	"github.com/rivo/tview"
     "github.com/skovati/kripto/tui"
+    // "github.com/skovati/kripto/portfolio"
 )
 
 // Slide is a function that returns each slides Primative and has a parameter
