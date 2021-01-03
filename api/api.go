@@ -148,7 +148,7 @@ func GetSupportedCoins() bool {
 	return err == nil
 }
 
-func GetTopCoins(number int) []TopCoin {
+func GetTopCoins(ch chan []TopCoin, number int) {
     url := "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=" + strconv.Itoa(number) + "&page=1&sparkline=false&price_change_percentage=1h%2C24h%2C7d"
 
     // set up http request
@@ -172,5 +172,5 @@ func GetTopCoins(number int) []TopCoin {
     result := []TopCoin{}
 	json.Unmarshal([]byte(body), &result)
 
-    return result
+    ch <- result
 }

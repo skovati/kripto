@@ -2,20 +2,86 @@ package main
 
 import (
     "fmt"
-    // "github.com/skovati/kripto/portfolio"
-    "github.com/skovati/kripto/api"
+    "strconv"
+
+    "github.com/gdamore/tcell/v2"
+	"github.com/rivo/tview"
+    "github.com/skovati/kripto/tui"
 )
 
+// Slide is a function that returns each slides Primative and has a parameter
+// called nextSlide that can be called to advance
+type Slide func(nextSlide func()) (title string, content tview.Primitive)
+
+// main tview application
+var app = tview.NewApplication()
+
 func main() {
-    // folio := *portfolio.OpenPortfolio()
+    // create slice of Slides
+    slides := []Slide{
+		tui.Cover,
+        tui.TopCoinsView,
+		tui.Portfolio}
 
-    topCoins := api.GetTopCoins(50)
+    // create pages view
+	pages := tview.NewPages()
 
-    for i, tc := range topCoins {
-        fmt.Printf("---------------\n")
-        fmt.Printf("%d. " + tc.Name + ":\n", i+1)
-        fmt.Printf("Price: $%.2f\n", tc.Price)
-        fmt.Printf("Percent Change 1 Hour: %.2f%%\n", tc.Percent1H)
-        fmt.Printf("Market Cap: $%d\n", tc.MarketCap)
-    }
+    // The bottom row has some info on where we are.
+	info := tview.NewTextView().
+		SetDynamicColors(true).
+		SetRegions(true).
+		SetWrap(false).
+        SetTextAlign(tview.AlignCenter).
+		SetHighlightedFunc(func(added, removed, remaining []string) {
+			pages.SwitchToPage(added[0])
+		})
+
+    // Create the pages for all slides.
+	previousSlide := func() {
+		slide, _ := strconv.Atoi(info.GetHighlights()[0])
+		slide = (slide - 1 + len(slides)) % len(slides)
+		info.Highlight(strconv.Itoa(slide)).
+			ScrollToHighlight()
+	}
+
+    // define nextSlide function
+	nextSlide := func() {
+		slide, _ := strconv.Atoi(info.GetHighlights()[0])
+		slide = (slide + 1) % len(slides)
+		info.Highlight(strconv.Itoa(slide)).
+			ScrollToHighlight()
+	}
+
+    // populate slides slice
+	for index, slide := range slides {
+		title, primitive := slide(nextSlide)
+		pages.AddPage(strconv.Itoa(index), primitive, true, index == 0)
+		fmt.Fprintf(info, `%d ["%d"][teal]%s[white][""]  `, index+1, index, title)
+	}
+
+    // highlight curr selection
+	info.Highlight("0")
+
+    // Create the main layout.
+	layout := tview.NewFlex().
+		SetDirection(tview.FlexRow).
+		AddItem(pages, 0, 1, true).
+		AddItem(info, 1, 1, false)
+
+	// Shortcuts to navigate the slides.
+	app.SetInputCapture(func(event *tcell.EventKey) *tcell.EventKey {
+		if event.Key() == tcell.KeyCtrlN {
+			nextSlide()
+			return nil
+		} else if event.Key() == tcell.KeyCtrlP {
+			previousSlide()
+			return nil
+		}
+		return event
+	})
+
+    // Start the application.
+	if err := app.SetRoot(layout, true).EnableMouse(true).Run(); err != nil {
+		panic(err)
+	}
 }
