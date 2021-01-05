@@ -22,7 +22,8 @@ func main() {
     slides := []Slide{
 		tui.Cover,
         tui.TopCoinsView,
-		tui.Portfolio}
+		tui.Portfolio,
+        tui.AddCoin}
 
     // create pages view
 	pages := tview.NewPages()
